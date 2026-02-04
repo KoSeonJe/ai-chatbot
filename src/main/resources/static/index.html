@@ -466,14 +466,13 @@
             const aiMessage = addMessage('', 'ai', true);
 
             try {
-                const endpoint = isStreaming ? '/api/chats/stream' : '/api/chats';
-                const response = await fetch(endpoint, {
+                const response = await fetch('/api/chats', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ question })
+                    body: JSON.stringify({ question, isStreaming })
                 });
 
                 if (response.status === 401) {

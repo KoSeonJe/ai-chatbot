@@ -34,11 +34,18 @@ class ChatController(
             - "Kotlin의 장점을 설명해주세요"
             - "1부터 10까지 세어주세요"
 
+            💡 옵션:
+            - isStreaming=true: SSE 스트리밍 응답 (실시간 토큰 단위)
+            - model: 사용할 모델 지정 (예: gpt-4o)
+
+            📌 SSE 스트리밍 형식 (isStreaming=true):
+            - event: token → 토큰 단위 응답
+            - event: done → 완료 (chatId, threadId 포함)
+            - event: error → 에러 발생
+
             💡 팁:
             - 구체적인 질문이 더 좋은 답변을 받을 수 있습니다
             - 30분 이내의 대화는 이전 맥락이 유지됩니다
-            - model 파라미터로 다른 모델을 지정할 수 있습니다
-            - isStreaming=true로 설정하면 실시간 스트리밍 응답
         """
     )
     @ApiResponses(value = [
@@ -50,36 +57,13 @@ class ChatController(
     fun createChat(
         @Valid @RequestBody request: CreateChatRequest,
         @CurrentUser authUser: AuthUser
-    ): ResponseEntity<ApiResponse<ChatResponse>> {
-        val response = chatService.createChat(authUser.userId, request.question, request.model)
-        return ResponseEntity.ok(ApiResponse.success(response))
-    }
-
-    @Operation(
-        summary = "AI와 대화하기 (스트리밍)",
-        description = """
-            질문을 입력하면 AI가 답변을 실시간 스트리밍으로 생성합니다.
-
-            📌 SSE (Server-Sent Events) 형식:
-            - event: token → 토큰 단위 응답
-            - event: done → 완료 (chatId, threadId 포함)
-            - event: error → 에러 발생
-
-            💡 curl 테스트:
-            ```
-            curl -N -H "Authorization: Bearer {token}" \
-                 -H "Content-Type: application/json" \
-                 -d '{"question": "안녕하세요"}' \
-                 http://localhost:8080/api/chats/stream
-            ```
-        """
-    )
-    @PostMapping("/chats/stream", produces = [MediaType.TEXT_EVENT_STREAM_VALUE])
-    fun createStreamingChat(
-        @Valid @RequestBody request: CreateChatRequest,
-        @CurrentUser authUser: AuthUser
-    ): SseEmitter {
-        return chatService.createStreamingChat(authUser.userId, request.question, request.model)
+    ): Any {
+        return if (request.isStreaming == true) {
+            chatService.createStreamingChat(authUser.userId, request.question, request.model)
+        } else {
+            val response = chatService.createChat(authUser.userId, request.question, request.model)
+            ResponseEntity.ok(ApiResponse.success(response))
+        }
     }
 
     @Operation(
