@@ -10,21 +10,29 @@ import org.springframework.stereotype.Component
 import org.springframework.web.client.RestTemplate
 import projects.aichatbot.common.exception.BusinessException
 import projects.aichatbot.common.exception.ErrorCode
+import projects.aichatbot.domain.chat.port.AiChatPort
+import projects.aichatbot.domain.chat.port.ChatMessage
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
 @Component
-class OpenAiClient(
+class OpenAiChatAdapter(
     @Value("\${openai.api-key}") private val apiKey: String,
     @Value("\${openai.model}") private val defaultModel: String,
     @Value("\${openai.max-tokens}") private val maxTokens: Int
-) {
+) : AiChatPort {
+
     private val restTemplate = RestTemplate()
     private val objectMapper = ObjectMapper()
     private val apiUrl = "https://api.openai.com/v1/chat/completions"
 
-    fun chat(question: String, chatHistory: List<OpenAiMessage> = emptyList(), model: String? = null): String {
-        val messages = buildMessages(question, chatHistory)
+    override fun chat(
+        question: String,
+        chatHistory: List<ChatMessage>,
+        model: String?,
+        context: String?
+    ): String {
+        val messages = buildMessages(question, chatHistory, context)
         val request = OpenAiRequest(
             model = model ?: defaultModel,
             messages = messages,
@@ -47,15 +55,16 @@ class OpenAiClient(
         }
     }
 
-    fun streamChat(
+    override fun streamChat(
         question: String,
-        chatHistory: List<OpenAiMessage> = emptyList(),
-        model: String? = null,
+        chatHistory: List<ChatMessage>,
+        model: String?,
+        context: String?,
         onToken: (String) -> Unit,
         onComplete: (String) -> Unit,
         onError: (String) -> Unit
     ) {
-        val messages = buildMessages(question, chatHistory)
+        val messages = buildMessages(question, chatHistory, context)
         val request = OpenAiRequest(
             model = model ?: defaultModel,
             messages = messages,
@@ -114,12 +123,43 @@ class OpenAiClient(
         }
     }
 
-    fun buildMessages(question: String, chatHistory: List<OpenAiMessage>): List<OpenAiMessage> {
-        val systemPrompt = OpenAiMessage(
-            role = "system",
-            content = "당신은 친절하고 도움이 되는 AI 어시스턴트입니다. 한국어로 답변해주세요."
-        )
+    private fun buildMessages(
+        question: String,
+        chatHistory: List<ChatMessage>,
+        context: String?
+    ): List<OpenAiMessage> {
+        val systemPrompt = buildSystemPrompt(context)
+        val historyMessages = chatHistory.map { it.toOpenAiMessage() }
 
-        return listOf(systemPrompt) + chatHistory + OpenAiMessage(role = "user", content = question)
+        return listOf(systemPrompt) + historyMessages + OpenAiMessage(role = "user", content = question)
+    }
+
+    private fun buildSystemPrompt(context: String?): OpenAiMessage {
+        val basePrompt = "당신은 친절하고 도움이 되는 AI 어시스턴트입니다. 한국어로 답변해주세요."
+
+        val content = if (context != null) {
+            """
+            |$basePrompt
+            |
+            |다음은 참고해야 할 문서 내용입니다:
+            |---
+            |$context
+            |---
+            |위 문서 내용을 참고하여 질문에 답변해주세요.
+            """.trimMargin()
+        } else {
+            basePrompt
+        }
+
+        return OpenAiMessage(role = "system", content = content)
+    }
+
+    private fun ChatMessage.toOpenAiMessage(): OpenAiMessage {
+        val role = when (this.role) {
+            ChatMessage.Role.USER -> "user"
+            ChatMessage.Role.ASSISTANT -> "assistant"
+            ChatMessage.Role.SYSTEM -> "system"
+        }
+        return OpenAiMessage(role = role, content = this.content)
     }
 }

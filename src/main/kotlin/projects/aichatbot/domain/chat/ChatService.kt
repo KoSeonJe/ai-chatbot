@@ -9,13 +9,13 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter
 import projects.aichatbot.common.exception.BusinessException
 import projects.aichatbot.common.exception.ErrorCode
 import projects.aichatbot.domain.chat.dto.*
+import projects.aichatbot.domain.chat.port.AiChatPort
+import projects.aichatbot.domain.chat.port.ChatMessage
 import projects.aichatbot.domain.thread.Thread
 import projects.aichatbot.domain.thread.ThreadRepository
 import projects.aichatbot.domain.user.User
 import projects.aichatbot.domain.user.UserRepository
 import projects.aichatbot.domain.user.UserRole
-import projects.aichatbot.infra.openai.OpenAiClient
-import projects.aichatbot.infra.openai.OpenAiMessage
 import java.util.concurrent.Executors
 
 @Service
@@ -24,7 +24,7 @@ class ChatService(
     private val chatRepository: ChatRepository,
     private val threadRepository: ThreadRepository,
     private val userRepository: UserRepository,
-    private val openAiClient: OpenAiClient
+    private val aiChatPort: AiChatPort
 ) {
     private val objectMapper = ObjectMapper()
     private val executor = Executors.newCachedThreadPool()
@@ -36,7 +36,7 @@ class ChatService(
 
         val thread = findOrCreateThread(userId, user)
         val chatHistory = buildChatHistory(thread.id)
-        val answer = openAiClient.chat(question, chatHistory, model)
+        val answer = aiChatPort.chat(question, chatHistory, model)
 
         val chat = Chat(
             thread = thread,
@@ -66,11 +66,11 @@ class ChatService(
                 val thread = findOrCreateThreadSync(userId, user)
                 val chatHistory = buildChatHistory(thread.id)
 
-                openAiClient.streamChat(
+                aiChatPort.streamChat(
                     question = question,
                     chatHistory = chatHistory,
                     model = model,
-                    onToken = { token ->
+                    onToken = { token: String ->
                         try {
                             val event = StreamEvent.token(token)
                             emitter.send(SseEmitter.event()
@@ -80,7 +80,7 @@ class ChatService(
                             // Client disconnected
                         }
                     },
-                    onComplete = { fullAnswer ->
+                    onComplete = { fullAnswer: String ->
                         try {
                             val chat = saveChatSync(thread, question, fullAnswer)
                             val event = StreamEvent.done(chat.id, thread.id)
@@ -92,7 +92,7 @@ class ChatService(
                             emitter.completeWithError(e)
                         }
                     },
-                    onError = { errorMessage ->
+                    onError = { errorMessage: String ->
                         try {
                             val event = StreamEvent.error(errorMessage)
                             emitter.send(SseEmitter.event()
@@ -208,13 +208,13 @@ class ChatService(
         return chat
     }
 
-    private fun buildChatHistory(threadId: Long): List<OpenAiMessage> {
+    private fun buildChatHistory(threadId: Long): List<ChatMessage> {
         val previousChats = chatRepository.findByThreadIdOrderByCreatedAtAsc(threadId)
 
         return previousChats.flatMap { chat ->
             listOf(
-                OpenAiMessage(role = "user", content = chat.question),
-                OpenAiMessage(role = "assistant", content = chat.answer)
+                ChatMessage(role = ChatMessage.Role.USER, content = chat.question),
+                ChatMessage(role = ChatMessage.Role.ASSISTANT, content = chat.answer)
             )
         }
     }
