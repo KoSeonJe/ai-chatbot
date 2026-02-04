@@ -491,7 +491,7 @@
                 } else {
                     const reader = response.body.getReader();
                     const decoder = new TextDecoder();
-                    let fullAnswer = '';
+                    const tokens = new Map();
                     let buffer = '';
 
                     while (true) {
@@ -511,7 +511,14 @@
                                     const data = JSON.parse(jsonStr);
                                     
                                     if (data.type === 'token' && data.content) {
-                                        fullAnswer += data.content;
+                                        tokens.set(data.index, data.content);
+                                        
+                                        // 인덱스 순으로 정렬하여 전체 메시지 재구성
+                                        const fullAnswer = Array.from(tokens.keys())
+                                            .sort((a, b) => a - b)
+                                            .map(idx => tokens.get(idx))
+                                            .join('');
+                                            
                                         updateMessage(aiMessage, fullAnswer);
                                     } else if (data.type === 'error') {
                                         updateMessage(aiMessage, '오류: ' + data.error);

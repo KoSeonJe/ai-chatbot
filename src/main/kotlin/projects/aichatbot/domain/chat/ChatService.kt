@@ -65,6 +65,7 @@ class ChatService(
 
                 val thread = findOrCreateThreadSync(userId, user)
                 val chatHistory = buildChatHistory(thread.id)
+                val tokenIndex = java.util.concurrent.atomic.AtomicInteger(0)
 
                 aiChatPort.streamChat(
                     question = question,
@@ -72,7 +73,7 @@ class ChatService(
                     model = model,
                     onToken = { token: String ->
                         try {
-                            val event = StreamEvent.token(token)
+                            val event = StreamEvent.token(token, tokenIndex.getAndIncrement())
                             emitter.send(SseEmitter.event()
                                 .name("token")
                                 .data(objectMapper.writeValueAsString(event)))

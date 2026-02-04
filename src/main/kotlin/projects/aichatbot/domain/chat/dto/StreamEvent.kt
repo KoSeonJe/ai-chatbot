@@ -6,12 +6,13 @@ import com.fasterxml.jackson.annotation.JsonInclude
 data class StreamEvent(
     val type: String,
     val content: String? = null,
+    val index: Int? = null,
     val chatId: Long? = null,
     val threadId: Long? = null,
     val error: String? = null
 ) {
     companion object {
-        fun token(content: String) = StreamEvent(type = "token", content = content)
+        fun token(content: String, index: Int) = StreamEvent(type = "token", content = content, index = index)
         fun done(chatId: Long, threadId: Long) = StreamEvent(type = "done", chatId = chatId, threadId = threadId)
         fun error(message: String) = StreamEvent(type = "error", error = message)
     }
