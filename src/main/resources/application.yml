@@ -1,0 +1,39 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ai-chatbot
+  datasource:
+    url: jdbc:h2:mem:chatbot
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+
+jwt:
+  secret: chatbot-demo-secret-key-for-jwt-token-generation-minimum-256-bits-required
+  expiration: 86400000
+
+openai:
+  api-key: ${OPENAI_API_KEY:your-api-key}
+  model: gpt-4o-mini
+  max-tokens: 1000
