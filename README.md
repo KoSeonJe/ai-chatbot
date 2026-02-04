@@ -56,8 +56,7 @@ export OPENAI_API_KEY=your-api-key
 
 | Method | Endpoint | 설명 |
 |--------|----------|------|
-| POST | `/api/chats` | 대화 생성 (일반) |
-| POST | `/api/chats/stream` | 대화 생성 (스트리밍) |
+| POST | `/api/chats` | 대화 생성 (일반, 스티리밍) |
 | GET | `/api/chats` | 대화 목록 조회 |
 | DELETE | `/api/threads/{id}` | 스레드 삭제 |
 
@@ -97,6 +96,7 @@ src/main/kotlin/projects/aichatbot/
 ├── domain/
 │   ├── user/         # 인증 (회원가입/로그인)
 │   ├── thread/       # 대화 스레드
+│   ├── feedback/       # 피드백(미구현)
 │   └── chat/         # AI 대화
 └── infra/
     └── openai/       # OpenAI API 클라이언트
@@ -110,7 +110,6 @@ src/main/kotlin/projects/aichatbot/
 |------|------|
 | [DEMO_GUIDE.md](docs/DEMO_GUIDE.md) | 고객 시연 가이드 |
 | [EXTENSION_ROADMAP.md](docs/EXTENSION_ROADMAP.md) | RAG 확장 로드맵 |
-| [CLAUDE.md](./CLAUDE.md) | 프로젝트 컨텍스트 |
 
 ---
 
@@ -119,23 +118,3 @@ src/main/kotlin/projects/aichatbot/
 1. **RAG (Retrieval-Augmented Generation)**
    - 자사 대외비 문서 학습
    - 도메인 특화 AI 챗봇
-
-2. **Fine-tuning**
-   - 피드백 데이터 기반 모델 미세조정
-
-3. **멀티모달**
-   - 이미지/PDF 처리
-
-자세한 내용은 [EXTENSION_ROADMAP.md](docs/EXTENSION_ROADMAP.md) 참조
-
----
-
-## 📞 문의
-
-기술 문의: support@example.com
-
----
-
-## 라이선스
-
-MIT License
