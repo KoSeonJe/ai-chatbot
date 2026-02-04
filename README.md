@@ -1,6 +1,6 @@
 # 🤖 AI Chatbot Demo
 
-> **📄 [과제 수행 보고서 (과제 분석, AI 활용, 핵심 기능 설명)](docs/assignment-report.md)**
+### **📄 [과제 수행 보고서 (과제 분석, AI 활용, 핵심 기능 설명)](docs/assignment-report.md)**
 
 > VIP 고객 시연용 AI 챗봇 API 서비스
 
