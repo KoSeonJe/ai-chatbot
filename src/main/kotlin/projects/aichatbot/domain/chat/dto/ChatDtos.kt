@@ -11,7 +11,10 @@ data class CreateChatRequest(
     val question: String,
 
     @Schema(description = "사용할 모델 (선택)", example = "gpt-4o")
-    val model: String? = null
+    val model: String? = null,
+
+    @Schema(description = "스트리밍 응답 여부", example = "false")
+    val isStreaming: Boolean? = false
 )
 
 @Schema(description = "대화 생성 응답")
