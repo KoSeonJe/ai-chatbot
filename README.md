@@ -106,8 +106,8 @@ src/main/kotlin/projects/aichatbot/
 
 | 문서 | 설명 |
 |------|------|
-| [DEMO_GUIDE.md](./DEMO_GUIDE.md) | 고객 시연 가이드 |
-| [EXTENSION_ROADMAP.md](./EXTENSION_ROADMAP.md) | RAG 확장 로드맵 |
+| [DEMO_GUIDE.md](docs/DEMO_GUIDE.md) | 고객 시연 가이드 |
+| [EXTENSION_ROADMAP.md](docs/EXTENSION_ROADMAP.md) | RAG 확장 로드맵 |
 | [CLAUDE.md](./CLAUDE.md) | 프로젝트 컨텍스트 |
 
 ---
@@ -124,7 +124,7 @@ src/main/kotlin/projects/aichatbot/
 3. **멀티모달**
    - 이미지/PDF 처리
 
-자세한 내용은 [EXTENSION_ROADMAP.md](./EXTENSION_ROADMAP.md) 참조
+자세한 내용은 [EXTENSION_ROADMAP.md](docs/EXTENSION_ROADMAP.md) 참조
 
 ---
 
